@@ -2,10 +2,15 @@
 <html lang="en-US">
   <head>
     <title>File-based CMS</title>
+    <meta charset="UTF-8">
   </head>
   <body>
     <header>
     </header>
+
+    <% if session[:error] %>
+      <p><%= session.delete(:error) %></p>
+    <% end %>
 
     <main>
       <%= yield %>

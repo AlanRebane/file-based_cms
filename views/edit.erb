@@ -1,6 +1,7 @@
-<a>Edit content of <%= @file_name %>:</a>
-<form action="/<%= @file_name %>/edit" method="post">
-  <textarea name="file_content" rows=20 cols=100><%= @content %></textarea>
-
-  <input type="submit" value="Save Changes">
+<form method="post" action="/<%= @filename %>">
+  <label for="content">Edit content of <%= @filename %>:</label>
+  <div>
+    <textarea name="content" rows=20 cols=100><%= @content %></textarea>
+  </div>
+  <button type="submit">Save Changes</button>
 </form>

@@ -41,7 +41,31 @@ get "/:filename" do
   if File.file?(file_path)
     load_file_content(file_path)
   else
-    session[:error] = "#{params[:filename]} does not exist."
+    session[:message] = "#{params[:filename]} does not exist."
     redirect "/"
   end
+end
+
+get "/:filename/edit" do
+  @file_name = params[:filename]
+  file_path = root + "/data/" + @file_name
+
+  if File.file?(file_path)
+    @content = File.read(file_path)
+  else
+    session[:message] = "#{params[:filename]} does not exist."
+    redirect "/"
+  end
+
+  erb :edit, layout: :layout
+end
+
+post "/:filename/edit" do
+  @file_name = params[:filename]
+  file_path = root + "/data/" + @file_name
+
+  File.open(file_path, "w") { |f| f.write params[:file_content] }
+
+  session[:message] = "#{@file_name} has been updated"
+  redirect "/"
 end

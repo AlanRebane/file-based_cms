@@ -28,7 +28,7 @@ def load_file_content(path)
     headers["Content-Type"] = "text/plain"
     content
   when ".md"
-    render_markdown(content)
+    erb render_markdown(content)
   end
 end
 
@@ -38,6 +38,27 @@ get '/' do
     File.basename(path)
   end
   erb :index, layout: :layout
+end
+
+get "/new" do
+  erb :new, layout: :layout
+end
+
+post "/create" do
+  filename = params[:filename].to_s
+
+  if filename.empty?
+    session[:message] = "A name is required."
+    status 422
+    erb :new, layout: :layout
+  else
+    file_path = File.join(data_path, filename)
+
+    File.write(file_path, "")
+    session[:message] = "#{params[:filename]} has been created."
+    
+    redirect "/"
+  end
 end
 
 get "/:filename" do
@@ -57,7 +78,7 @@ get "/:filename/edit" do
   @filename = params[:filename]
   @content = File.read(file_path)
 
-  erb :edit
+  erb :edit, layout: :layout
 end
 
 post "/:filename" do
@@ -66,5 +87,14 @@ post "/:filename" do
   File.write(file_path, params[:content])
 
   session[:message] = "#{params[:filename]} has been updated."
+  redirect "/"
+end
+
+post "/:filename/delete" do
+  file_path = File.join(data_path, params[:filename])
+
+  File.delete(file_path)
+  
+  session[:message] = "#{params[:filename]} has been deleted."
   redirect "/"
 end

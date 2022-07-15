@@ -95,6 +95,44 @@ class AppTest < Minitest::Test
     assert_includes last_response.body, "new content"
   end
 
+  def test_view_new_document_form
+    get "/new"
+
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "<input"
+    assert_includes last_response.body, %q(<button type="submit")
+  end
+
+  def test_create_new_file
+    post "/create", filename: "myfile.txt"
+    assert_equal 302, last_response.status
+
+    get last_response["Location"]
+    assert_includes last_response.body, "myfile.txt has been created."
+    
+    get "/"
+    assert_includes last_response.body, "myfile.txt"
+  end
+
+  def test_create_new_document_without_filename
+    post "/create", filename: ""
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "A name is required"
+  end
+
+  def test_delete_a_document
+    create_document("myfile.txt")
+
+    post "/myfile.txt/delete"
+    assert_equal 302, last_response.status
+
+    get last_response["Location"]
+    assert_includes last_response.body, "myfile.txt has been deleted."
+    
+    get "/"
+    refute_includes last_response.body, "myfile.txt"
+  end
+
   def teardown
     FileUtils.rm_rf(data_path)
   end

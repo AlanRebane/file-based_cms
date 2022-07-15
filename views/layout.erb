@@ -3,17 +3,17 @@
   <head>
     <title>File-based CMS</title>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="/stylesheets/whitespace-reset.css">
+    <link rel="stylesheet" href="/stylesheets/cms.css">
   </head>
   <body>
     <header>
     </header>
 
     <% if session[:message] %>
-      <p><%= session.delete(:message) %></p>
+      <p class="message"><%= session.delete(:message) %></p>
     <% end %>
 
-    <main>
-      <%= yield %>
-    </main>
+    <%= yield %>
   </body>
 </html>

@@ -2,6 +2,8 @@ require 'sinatra'
 require 'sinatra/reloader'
 require 'tilt/erubis'
 require 'redcarpet'
+require 'yaml'
+require 'bcrypt'
 
 configure do
   enable :sessions
@@ -32,6 +34,52 @@ def load_file_content(path)
   end
 end
 
+def load_user_credentials
+  credentials_path = if ENV["RACK_ENV"] == "test"
+    File.expand_path("../test/users.yml", __FILE__)
+  else
+    File.expand_path("../users.yml", __FILE__)
+  end
+  YAML.load_file(credentials_path)
+end
+
+def authenticated?(username, password)
+  credentials = load_user_credentials
+
+  hash = credentials[username]
+
+  BCrypt::Password.new(hash) == password
+end
+
+def signed_in?
+  if !session[:username]
+    session[:message] = "You must be signed in to do that."
+    redirect "/"
+  end
+end
+
+get "/users/signin" do
+  erb :signin
+end
+
+post "/users/signin" do
+  if authenticated?(params[:username], params[:password])
+    session[:username] = params[:username]
+    session[:message] = "Welcome!"    
+    redirect "/"
+  else
+    session[:message] = "Invalid Credentials!"
+    status 422
+    erb :signin
+  end
+end
+
+post "/users/signout" do
+  session.delete(:username)
+  session[:message] = "You have been signed out!"
+  redirect "/users/signin"
+end
+
 get '/' do
   pattern = File.join(data_path, "*")
   @files = Dir.glob(pattern).map do |path|
@@ -41,10 +89,12 @@ get '/' do
 end
 
 get "/new" do
+  signed_in?
   erb :new, layout: :layout
 end
 
 post "/create" do
+  signed_in?
   filename = params[:filename].to_s
 
   if filename.empty?
@@ -73,6 +123,7 @@ get "/:filename" do
 end
 
 get "/:filename/edit" do
+  signed_in?
   file_path = File.join(data_path, params[:filename])
 
   @filename = params[:filename]
@@ -82,6 +133,7 @@ get "/:filename/edit" do
 end
 
 post "/:filename" do
+  signed_in?
   file_path = File.join(data_path, params[:filename])
 
   File.write(file_path, params[:content])
@@ -91,6 +143,7 @@ post "/:filename" do
 end
 
 post "/:filename/delete" do
+  signed_in?
   file_path = File.join(data_path, params[:filename])
 
   File.delete(file_path)

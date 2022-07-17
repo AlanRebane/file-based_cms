@@ -13,5 +13,6 @@ gem "puma"
 gem "reel"
 gem "http"
 gem "webrick"
+gem "bcrypt"
 
 gem "redcarpet" 
